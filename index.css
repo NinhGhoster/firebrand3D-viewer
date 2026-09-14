@@ -1265,3 +1265,30 @@ body.sidebar-open .sidebar-scrim { display: block; }
 @media (max-width: 1024px) {
   .hud-overlay { max-width: 190px; }
 }
+
+/* ==========================================================================
+   Mobile and tablet: the video card collapsed to nothing.
+   .detail-body is flex:1, i.e. flex-basis:0. On desktop the grid row gives the
+   card a definite height so the item grows into it; below 1025px the rows are
+   content-sized, there is no free space, and a zero basis stays zero — taking
+   the tab header and the video with it.
+   ========================================================================== */
+@media (max-width: 1024px) {
+  .details-card    { height: auto; }
+  .detail-body     { flex: 0 0 auto; overflow: visible; }
+  .video-container { height: auto; }
+  .video-viewports { flex: 0 0 auto; padding: 12px; }
+  .video-wrapper   { aspect-ratio: 16 / 9; }   /* now the height source */
+  .card            { overflow: visible; }      /* was clipping the collapsed card */
+  .workspace-grid  { align-items: start; }
+}
+
+@media (max-width: 640px) {
+  /* Two tabs must stay legible and tappable rather than truncating. */
+  .video-tab-header { flex-wrap: wrap; }
+  .tab-btn { flex: 1 1 50%; font-size: 0.74rem; padding: 10px 6px; min-height: 42px; }
+  .segment-strip { padding: 6px 8px; }
+  .segment-btn { min-height: 30px; }
+  .viewport-controls { width: 100%; }
+  .viewport-controls .btn { flex: 1 1 auto; }
+}
