@@ -51,32 +51,77 @@ document.addEventListener('DOMContentLoaded', () => {
 // Boot
 // ---------------------------------------------------------------------------
 async function initApp() {
+  // Loading the catalogue and wiring the interface are separate failures and must report
+  // separately. Previously one try/catch covered both, so a WebGL failure during setup
+  // displayed "could not load the database" over a catalogue that had loaded perfectly.
   try {
     const response = await fetch('database.json');
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     allRuns = await response.json();
-
-    const meshes = allRuns.reduce((n, r) => n + r.firebrands.filter(b => b.mesh_path).length, 0);
-    document.getElementById('stat-runs').textContent = allRuns.length;
-    document.getElementById('stat-meshes').textContent = meshes.toLocaleString();
-
-    setupFilters();
-    setupThemeToggle();
-    setupVideoTabs();
-    setupRenderControls();
-    setupVideoFocusToggle();
-    setupSidebarToggle();
-    initThreeViewport();
-    rebuildFacets();
-    applyFilters();
   } catch (error) {
-    console.error('Failed to initialize app:', error);
+    console.error('Could not load database.json:', error);
     document.getElementById('runs-list').innerHTML = `
       <div class="empty-state" style="margin: 20px; border-color: #ef4444;">
         <div class="empty-state-icon">!</div>
-        <h3>Could not load the database</h3>
+        <h3>Could not load the catalogue</h3>
         <p>database.json is missing or unreadable.</p>
       </div>`;
+    return;
+  }
+
+  const meshes = allRuns.reduce((n, r) => n + r.firebrands.filter(b => b.mesh_path).length, 0);
+  document.getElementById('stat-runs').textContent = allRuns.length;
+  document.getElementById('stat-meshes').textContent = meshes.toLocaleString();
+
+  // Each subsystem is wired independently, so one that fails cannot take the rest of the
+  // interface down with it — browsing and the tables stay usable without WebGL.
+  const step = (name, fn) => {
+    try { fn(); } catch (e) { console.error(`Setup step "${name}" failed:`, e); return false; }
+    return true;
+  };
+  step('filters', setupFilters);
+  step('theme', setupThemeToggle);
+  step('video tabs', setupVideoTabs);
+  step('render controls', setupRenderControls);
+  step('video focus', setupVideoFocusToggle);
+  step('sidebar', setupSidebarToggle);
+
+  if (!step('3D viewport', initThreeViewport)) {
+    viewportUnavailable('This browser could not start the 3D viewer, so meshes cannot be '
+      + 'displayed. Everything else on the page still works.');
+  }
+
+  step('facets', rebuildFacets);
+  step('list', applyFilters);
+  step('deep link', openFromHash);
+  window.addEventListener('hashchange', openFromHash);
+}
+
+/**
+ * Open the experiment named in the URL fragment, so a link to one experiment can be shared
+ * or cited. Without this the only way to reach a run is to find it in the list again.
+ */
+function openFromHash() {
+  const match = /^#run=(.+)$/.exec(decodeURIComponent(location.hash || ''));
+  if (!match) return;
+  const run = allRuns.find(r => r.id === match[1]);
+  if (!run || (selectedRun && selectedRun.id === run.id)) return;
+  selectRun(run);
+  document.querySelectorAll('.run-item').forEach(el =>
+    el.classList.toggle('active', el.getAttribute('data-id') === run.id));
+}
+
+/** Report a dead viewport in the viewport, not as a database error. */
+function viewportUnavailable(message) {
+  const container = document.getElementById('three-container');
+  if (!container) return;
+  const box = document.getElementById('canvas-loading');
+  if (box) {
+    box.style.display = 'flex';
+    const spinner = box.querySelector('.spinner');
+    if (spinner) spinner.style.display = 'none';
+    const text = box.querySelector('.loading-text');
+    if (text) text.textContent = message;
   }
 }
 
@@ -328,6 +373,9 @@ function runItem(run) {
 function selectRun(run) {
   selectedRun = run;
   activeSegment = { rgb: 0, thermal: 0 };
+  // Reflect the selection in the URL so the view can be linked to or cited.
+  const target = `#run=${encodeURIComponent(run.id)}`;
+  if (location.hash !== target) history.replaceState(null, '', target);
 
   document.getElementById('no-selection-screen').style.display = 'none';
   document.getElementById('active-workspace').style.display = 'grid';

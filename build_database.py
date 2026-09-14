@@ -135,10 +135,24 @@ def main():
     # Media first, so each run carries every recording rather than the one its first mesh
     # happened to name. A trailing letter on a section (S13a, S13b) is a continuation segment
     # of one recording, so these are parts of an experiment, not separate experiments.
-    rgb, thermal = {}, {}
+    # experiment_media.csv mis-assigns media in one case: fibrous_bark|E_radiata/High/150kW|S16
+    # has no plain S16.mp4 (only the S16a and S16b segments), and the manifest builder fell
+    # back to claiming every file in the folder — so that experiment is credited with nine
+    # recordings belonging to other trunk sections. Guard on the section base, where a
+    # trailing letter marks a continuation segment of the same recording, so S16, S16a and
+    # S16b match but S13 does not. This protects the viewer; the release still needs fixing.
+    section_base = lambda s: re.sub(r"[a-z]$", "", s)
+    rgb, thermal, dropped = {}, {}, []
     for m in media:
+        eid = m["experiment_id"]
+        if eid.startswith("fibrous_bark|"):
+            section = eid.rsplit("|", 1)[-1]
+            stem = os.path.basename(m["media_path"]).rsplit(".", 1)[0]
+            if section_base(stem) != section_base(section):
+                dropped.append((eid, m["media_path"]))
+                continue
         bucket = rgb if m["media_kind"] == "RGB" else thermal
-        bucket.setdefault(m["experiment_id"], []).append(m["media_path"])
+        bucket.setdefault(eid, []).append(m["media_path"])
 
     runs = {}
     for r in rows:
@@ -235,6 +249,10 @@ def main():
     print(f"  carrying a real flag {flagged}")
     print(f"  rgb / thermal        {sum(len(r['rgb_videos']) for r in out)} / {sum(len(r['thermal_videos']) for r in out)}")
     print(f"  multi-segment runs   {sum(1 for r in out if len(r['rgb_videos']) > 1 or len(r['thermal_videos']) > 1)}")
+    if dropped:
+        print(f"  media DROPPED as mis-assigned in the release: {len(dropped)}")
+        for eid, p_ in dropped[:12]:
+            print(f"    {eid}  <-  {p_}")
     print(f"  thermal spans known  {sum(1 for r in out for s in r['thermal_segments'] if s['threshold_degC'] is not None)}")
     for fam in sorted({r["fuel_type"] for r in out}):
         print(f"    {fam:28s} {sum(1 for r in out if r['fuel_type'] == fam):4d} runs")

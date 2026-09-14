@@ -26,18 +26,21 @@
 
   <div id="sidebar-scrim" class="sidebar-scrim"></div>
 
-  <div class="app-shell">
-    <header class="app-header">
-      <div class="header-left">
+  <div class="app-container">
+    <header class="header">
+      <div class="logo-area">
         <button id="btn-sidebar-toggle" class="btn btn-secondary btn-small sidebar-toggle" aria-label="Show or hide the experiment list">☰</button>
-        <div class="brand">
-          <span class="brand-title">Firebrand3D</span>
+        <span class="logo-icon">🔥</span>
+        <div class="title-wrap">
+          <h1>Firebrand3D</h1>
           <span class="sub-title">Firebrand characterisation dataset</span>
         </div>
       </div>
-      <div class="header-right">
-        <span class="stat-badge"><strong id="stat-runs">0</strong> experiments</span>
-        <span class="stat-badge"><strong id="stat-meshes">0</strong> firebrands</span>
+      <div class="header-actions">
+        <div class="global-stats">
+          <span class="stat-badge"><strong id="stat-runs">0</strong> experiments</span>
+          <span class="stat-badge"><strong id="stat-meshes">0</strong> firebrands</span>
+        </div>
         <a href="paper.html" class="btn btn-secondary btn-small" target="_blank" rel="noopener">Read the paper</a>
         <button id="theme-toggle" class="btn btn-secondary btn-small" aria-label="Switch between light and dark">
           <span class="sun-icon">☀</span><span class="moon-icon" style="display:none;">☾</span>
@@ -45,11 +48,12 @@
       </div>
     </header>
 
-    <div class="app-body">
+    <div class="content-wrapper">
       <!-- ------------------------------------------------------------------ -->
       <!-- Sidebar                                                             -->
       <!-- ------------------------------------------------------------------ -->
       <aside id="sidebar" class="sidebar">
+        <div class="search-filter-panel">
         <div class="panel-section">
           <h2 class="section-title">Find an experiment</h2>
           <div class="search-box">
@@ -84,6 +88,7 @@
             <option value="brands-asc">Firebrands (fewest first)</option>
           </select>
         </div>
+        </div><!-- /.search-filter-panel -->
 
         <div class="group-navigation">
           <div class="group-nav-header">

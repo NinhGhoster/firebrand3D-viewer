@@ -1120,7 +1120,7 @@ td .na, .na { color: var(--text-muted); font-size: 0.76rem; font-style: italic; 
 .intro-hint { font-size: 0.82rem; color: var(--text-muted); font-style: italic; margin: 0; }
 
 /* --- Mobile sidebar ----------------------------------------------------- */
-.sidebar-toggle { display: none; }
+.sidebar-toggle { display: none; margin-right: 4px; }
 .sidebar-scrim {
   display: none; position: fixed; inset: 0; z-index: 40;
   background: rgba(0, 0, 0, 0.5);
@@ -1163,8 +1163,9 @@ body.sidebar-open .sidebar-scrim { display: block; }
     min-height: 0;            /* 700px forced a scroll on every phone */
   }
   .workspace { padding: 12px; }
-  .app-header { flex-wrap: wrap; gap: 10px; }
-  .header-right { gap: 6px; }
+  .header { flex-wrap: wrap; height: auto; padding: 10px 14px; gap: 10px; }
+  .header-actions { gap: 8px; }
+  .content-wrapper { height: auto; flex: 1; }
   .intro-card { padding: 22px 18px; }
   .intro-card h1 { font-size: 1.35rem; }
 }
@@ -1185,4 +1186,82 @@ body.sidebar-open .sidebar-scrim { display: block; }
 /* Respect a reduced-motion preference for the drawer and hover transitions. */
 @media (prefers-reduced-motion: reduce) {
   * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}
+
+/* Present in the original markup but never styled. */
+.viewport-title { font-size: 0.95rem; margin: 0; }
+.viewport-controls { display: flex; gap: 6px; flex-wrap: wrap; }
+
+/* Injected facets sit inside .search-filter-panel; match its column rhythm. */
+#dynamic-facets { display: flex; flex-direction: column; gap: 16px; }
+/* The sidebar is a flex column with overflow hidden; the filter panel must not be squeezed
+   out when the run tree is long. */
+.search-filter-panel { flex: none; }
+.group-navigation { display: flex; flex-direction: column; min-height: 0; flex: 1; }
+
+/* A flex item defaults to min-width:auto, so it refuses to shrink below its content's
+   preferred width. The intro card's 760px max-width therefore pushed the workspace wider
+   than a phone viewport and the text ran off the right edge. */
+.content-wrapper > * { min-width: 0; }
+.workspace, .workspace-centered-screen { min-width: 0; }
+.intro-card { width: 100%; }
+.workspace-grid > .card { min-width: 0; }
+
+/* ==========================================================================
+   Desktop layout: give the firebrand table the full width.
+   It carries ten columns of measurements and was confined to one grid column,
+   which pushed height, mass and density out of view behind a scrollbar.
+   ========================================================================== */
+@media (min-width: 1025px) {
+  .workspace-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: auto minmax(320px, auto);
+    height: auto;
+    min-height: 0;
+  }
+  .details-card  { grid-column: 1 / 2; grid-row: 1 / 2; }
+  .viewport-card { grid-column: 2 / 3; grid-row: 1 / 2; min-height: 460px; }
+  .table-card    { grid-column: 1 / -1; grid-row: 2 / 3; min-height: 0; }
+
+  /* Focus mode: the video takes the full width, the mesh and table share the row below. */
+  .workspace-grid.video-focused { grid-template-rows: auto minmax(320px, auto); }
+  .workspace-grid.video-focused .details-card  { grid-column: 1 / -1; grid-row: 1 / 2; }
+  .workspace-grid.video-focused .viewport-card { grid-column: 1 / 2; grid-row: 2 / 3; }
+  .workspace-grid.video-focused .table-card    { grid-column: 2 / 3; grid-row: 2 / 3; }
+
+  /* Ten columns still need room on a laptop; let the table scroll rather than the page. */
+  .table-wrapper { overflow-x: auto; }
+}
+
+/* --- HUD: compact, and clickable where it needs to be ------------------- */
+/* The panel was wide enough to cover the mesh it annotates. The firebrand_uid is the long
+   part, so it gets its own line at a smaller size and truncates rather than stretching the
+   panel. */
+.hud-overlay {
+  max-width: 230px;
+  padding: 10px 12px;
+  gap: 5px;
+}
+.hud-item { gap: 12px; font-size: 11px; }
+.hud-uid {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+.hud-uid .hud-val {
+  font-size: 9.5px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  direction: rtl;            /* keep the distinctive tail visible when it truncates */
+  text-align: left;
+}
+/* The overlay is pointer-events:none so orbiting works through it; the download link is the
+   one thing inside it that must stay clickable. */
+.hud-overlay a, .hud-overlay button { pointer-events: auto; }
+#hud-download { margin-top: 4px; text-align: center; text-decoration: none; }
+
+@media (max-width: 1024px) {
+  .hud-overlay { max-width: 190px; }
 }
