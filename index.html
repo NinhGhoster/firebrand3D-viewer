@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Browse the Firebrand3D characterisation dataset: 7,663 three-dimensional firebrand meshes with mass and density, paired with RGB and thermal recordings of the experiments that produced them.">
+  <title>Firebrand3D — characterisation dataset</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="index.css">
+
+  <!-- Libraries are served from this host. A CDN outage or a network that blocks it would
+       otherwise leave the page loading and then silently blank. -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./vendor/three/three.module.js",
+        "three/addons/": "./vendor/three/addons/"
+      }
+    }
+  </script>
+</head>
+<body class="dark-mode">
+
+  <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+  <div class="app-shell">
+    <header class="app-header">
+      <div class="header-left">
+        <button id="btn-sidebar-toggle" class="btn btn-secondary btn-small sidebar-toggle" aria-label="Show or hide the experiment list">☰</button>
+        <div class="brand">
+          <span class="brand-title">Firebrand3D</span>
+          <span class="sub-title">Firebrand characterisation dataset</span>
+        </div>
+      </div>
+      <div class="header-right">
+        <span class="stat-badge"><strong id="stat-runs">0</strong> experiments</span>
+        <span class="stat-badge"><strong id="stat-meshes">0</strong> firebrands</span>
+        <a href="paper.html" class="btn btn-secondary btn-small" target="_blank" rel="noopener">Read the paper</a>
+        <button id="theme-toggle" class="btn btn-secondary btn-small" aria-label="Switch between light and dark">
+          <span class="sun-icon">☀</span><span class="moon-icon" style="display:none;">☾</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="app-body">
+      <!-- ------------------------------------------------------------------ -->
+      <!-- Sidebar                                                             -->
+      <!-- ------------------------------------------------------------------ -->
+      <aside id="sidebar" class="sidebar">
+        <div class="panel-section">
+          <h2 class="section-title">Find an experiment</h2>
+          <div class="search-box">
+            <input type="text" id="search-input" placeholder="Species, rating, section, firebrand ID…" autocomplete="off">
+            <span class="clear-search" id="clear-search" style="display:none;">&times;</span>
+          </div>
+        </div>
+
+        <div class="panel-section">
+          <label for="filter-fuel-type" class="filter-label">Fuel family</label>
+          <select id="filter-fuel-type" class="form-select">
+            <option value="all">All fuels</option>
+            <option value="branchlet">Branchlet</option>
+            <option value="fibrous_bark">Fibrous bark</option>
+            <option value="candlebark">Candlebark</option>
+            <option value="preliminary_branchlet_test">Preliminary branchlet test</option>
+          </select>
+        </div>
+
+        <!-- Facets are rebuilt per family: hazard rating applies only to bark, sample
+             length only to candlebark, structure only to branchlet. -->
+        <div id="dynamic-facets"></div>
+
+        <div class="panel-section">
+          <label for="sort-select" class="filter-label">Sort by</label>
+          <select id="sort-select" class="form-select">
+            <option value="id-asc">Name (A–Z)</option>
+            <option value="id-desc">Name (Z–A)</option>
+            <option value="hrr-desc">Heat release rate (high to low)</option>
+            <option value="hrr-asc">Heat release rate (low to high)</option>
+            <option value="brands-desc">Firebrands (most first)</option>
+            <option value="brands-asc">Firebrands (fewest first)</option>
+          </select>
+        </div>
+
+        <div class="group-navigation">
+          <div class="group-nav-header">
+            <h2>Experiments (<span id="filtered-count">0</span>)</h2>
+          </div>
+          <div id="runs-list" class="runs-list scrollbar"></div>
+        </div>
+
+        <div class="panel-section authors-section">
+          <h3 class="filter-label">Dataset authors</h3>
+          <p class="authors-org">The University of Melbourne · FLARE Wildfire Research · CNRS, France</p>
+          <p class="authors-names">Ha-Ninh Nguyen, Alexander Filkov, Jean-Baptiste Filippi, Trent Penman, Mika Peace, Alberto Alonso Pinar</p>
+        </div>
+      </aside>
+
+      <!-- ------------------------------------------------------------------ -->
+      <!-- Workspace                                                           -->
+      <!-- ------------------------------------------------------------------ -->
+      <main id="main-workspace" class="workspace">
+
+        <div id="no-selection-screen" class="workspace-centered-screen">
+          <div class="intro-card">
+            <h1>Firebrands, measured in three dimensions</h1>
+            <p class="intro-lead">
+              A firebrand is a burning fragment of vegetation carried ahead of a fire. Where it
+              lands decides whether a fire spreads by spotting, and that depends on its shape,
+              its size and how dense it is. Fire models have long had to assume firebrands are
+              discs, cylinders or spheres, because measured three-dimensional shapes did not
+              exist. This dataset is that measurement.
+            </p>
+            <div class="intro-grid">
+              <div class="intro-stat"><strong>7,663</strong><span>firebrands scanned in 3D</span></div>
+              <div class="intro-stat"><strong>372</strong><span>controlled burning experiments</span></div>
+              <div class="intro-stat"><strong>979</strong><span>RGB and thermal recordings</span></div>
+            </div>
+            <h3>The three fuel families</h3>
+            <ul class="intro-list">
+              <li><strong>Branchlet</strong> — fine twigs and foliage, burned whole and as separated twigs.</li>
+              <li><strong>Fibrous bark</strong> — the stringy bark of <em>E. obliqua</em> and <em>E. radiata</em>, across four hazard ratings.</li>
+              <li><strong>Candlebark</strong> — the ribbon bark of <em>E. rubida</em>, in flat and cylindrical forms.</li>
+            </ul>
+            <p class="intro-hint">Choose an experiment from the list to see its recordings and its firebrands.</p>
+          </div>
+        </div>
+
+        <div id="active-workspace" class="workspace-grid" style="display:none;">
+
+          <section id="details-section" class="card details-card">
+            <div class="card-header space-between">
+              <div class="detail-heading">
+                <div id="detail-badges" class="badge-row"></div>
+                <h2 id="detail-title">—</h2>
+                <div class="detail-id-row">
+                  <code id="detail-id" class="detail-id">—</code>
+                  <button id="btn-copy-id" class="btn btn-secondary btn-tiny" onclick="copyRunId()" title="Copy the full identifier for citation">Copy ID</button>
+                </div>
+              </div>
+              <button id="btn-toggle-video-focus" class="btn btn-secondary btn-small" title="Make the video larger">
+                <span class="icon">⤢</span> <span class="text">Expand video</span>
+              </button>
+            </div>
+
+            <div class="detail-body">
+              <div class="video-container">
+                <div class="video-tab-header">
+                  <button id="tab-btn-rgb" class="tab-btn active">Visible-light video</button>
+                  <button id="tab-btn-thermal" class="tab-btn">Thermal video</button>
+                </div>
+
+                <div class="video-viewports">
+                  <div id="viewport-rgb" class="video-wrapper">
+                    <div id="segments-rgb" class="segment-strip"></div>
+                    <video id="video-rgb" controls preload="metadata" playsinline></video>
+                    <div id="video-rgb-empty" class="video-empty-state" style="display:none;"><span></span></div>
+                  </div>
+
+                  <div id="viewport-thermal" class="video-wrapper" style="display:none;">
+                    <div id="segments-thermal" class="segment-strip"></div>
+                    <video id="video-thermal" controls preload="metadata" playsinline></video>
+                    <div id="video-thermal-empty" class="video-empty-state" style="display:none;"><span></span></div>
+                    <!-- Range comes from each record's own encoding, not a fixed scale. -->
+                    <div id="thermal-scale-legend" class="thermal-legend">
+                      <span id="legend-temp-low" class="legend-temp">—</span>
+                      <div class="color-bar"></div>
+                      <span id="legend-temp-high" class="legend-temp">—</span>
+                      <span id="legend-note" class="legend-note"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section id="viewport-section" class="card viewport-card">
+            <div class="card-header space-between">
+              <h2 class="viewport-title">Firebrand geometry</h2>
+              <div class="viewport-controls">
+                <button id="control-solid" class="btn btn-primary btn-small">Solid</button>
+                <button id="control-wireframe" class="btn btn-secondary btn-small">Wireframe</button>
+                <button id="control-points" class="btn btn-secondary btn-small">Points</button>
+                <button id="control-reset" class="btn btn-secondary btn-small">Reset view</button>
+              </div>
+            </div>
+
+            <div class="viewport-body">
+              <div id="three-container" class="three-canvas-wrapper">
+                <div id="canvas-loading" class="canvas-loading" style="display:none;">
+                  <div class="spinner"></div>
+                  <div class="loading-text">Loading mesh… <span id="loading-percent">0%</span></div>
+                </div>
+
+                <div id="mesh-hud-overlay" class="hud-overlay" style="display:none;">
+                  <div class="hud-item hud-uid"><span class="hud-label">ID</span> <span id="hud-val-uid" class="hud-val mono">—</span></div>
+                  <div class="hud-item"><span class="hud-label">Volume</span> <span id="hud-val-volume" class="hud-val">—</span></div>
+                  <div class="hud-item"><span class="hud-label">Surface area</span> <span id="hud-val-area" class="hud-val">—</span></div>
+                  <div class="hud-item" title="Volume divided by surface area — the compactness measure used in the research paper">
+                    <span class="hud-label">V/Sa</span> <span id="hud-val-vsa" class="hud-val">—</span>
+                  </div>
+                  <div class="hud-item"><span class="hud-label">Mass</span> <span id="hud-val-mass" class="hud-val">—</span></div>
+                  <div class="hud-item"><span class="hud-label">Density</span> <span id="hud-val-density" class="hud-val">—</span></div>
+                  <div id="hud-flags" class="hud-flags" style="display:none;"></div>
+                  <a id="hud-download" class="btn btn-secondary btn-tiny" href="#" download style="display:none;">Download mesh</a>
+                </div>
+
+                <div class="legend-overlay">
+                  <div class="legend-item"><span class="color-box scale-box"></span> Grid squares are 10 × 10 mm</div>
+                  <div class="legend-item"><span class="color-box box-box"></span> Box shows the firebrand's extent</div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section id="table-section" class="card table-card">
+            <div class="card-header">
+              <h2>Firebrands recovered (<span id="firebrands-count">0</span>)</h2>
+              <p class="subtitle-text">Select a row to view that firebrand in three dimensions.</p>
+              <p id="table-flag-summary" class="flag-summary"></p>
+            </div>
+            <div class="table-wrapper scrollbar">
+              <table id="firebrands-table">
+                <thead>
+                  <tr>
+                    <th>Firebrand</th>
+                    <th>Volume (mm³)</th>
+                    <th>Surface area (mm²)</th>
+                    <th title="Volume divided by surface area — the compactness measure used in the research paper">V/Sa (mm)</th>
+                    <th>Length (mm)</th>
+                    <th>Width (mm)</th>
+                    <th>Height (mm)</th>
+                    <th>Mass (g)</th>
+                    <th>Density (kg/m³)</th>
+                    <th><span class="sr-only">Download</span>↓</th>
+                  </tr>
+                </thead>
+                <tbody id="firebrands-table-body"></tbody>
+              </table>
+            </div>
+          </section>
+
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
