@@ -45,6 +45,24 @@ for f in draco_decoder.js draco_decoder.wasm draco_wasm_wrapper.js; do
 
 The importmap in `index.html` points at `./vendor/three/`; keep the version in step with it.
 
+## Caching
+
+Caddy originally sent no `Cache-Control` for this site, only an ETag, so browsers cached
+heuristically and never revalidated. A returning visitor could run a cached old `app.js`
+against a new `index.html`, which fails on missing elements and surfaces as "Failed to Load
+Database" — a stale cache reported as corrupt data.
+
+The site block now sets:
+
+| paths | header | why |
+|---|---|---|
+| `/`, `/index.html`, `/app.js`, `/index.css`, `/database.json`, `/paper.html`, `/staging.html` | `no-cache` | revalidate every load; unchanged files still cost only a 304 |
+| `/vendor/*` | `public, max-age=86400` | pinned by the importmap, but refreshing three.js in place must not serve stale for weeks |
+
+`no-cache` does **not** mean "do not cache" — the copy is reused after revalidation. After
+changing the Caddyfile, `sudo caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile`
+then `sudo systemctl reload caddy`. Backups are written alongside as `Caddyfile.bak.<stamp>`.
+
 ## Not yet done
 
 The site carries no `noindex`. The staging page it replaced did. Add one to `index.html` if
