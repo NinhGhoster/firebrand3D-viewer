@@ -60,11 +60,16 @@ async function initApp() {
     allRuns = await response.json();
   } catch (error) {
     console.error('Could not load database.json:', error);
+    // The commonest cause is a stale cache, not a broken file, so say so: a visitor who
+    // reloads normally may keep getting the cached copy that failed.
     document.getElementById('runs-list').innerHTML = `
       <div class="empty-state" style="margin: 20px; border-color: #ef4444;">
         <div class="empty-state-icon">!</div>
         <h3>Could not load the catalogue</h3>
-        <p>database.json is missing or unreadable.</p>
+        <p>If this page worked before, you are probably seeing a cached copy.
+           Reload with <strong>&#8984;&#8679;R</strong> (Mac) or
+           <strong>Ctrl&#8679;R</strong> (Windows).</p>
+        <p style="margin-top:8px;font-size:0.78rem;opacity:0.7;">${error}</p>
       </div>`;
     return;
   }
