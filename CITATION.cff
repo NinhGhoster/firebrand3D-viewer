@@ -15,7 +15,7 @@ url: https://firebrand3d.flarewildfire.app/
 abstract: >-
   A browser viewer for the Firebrand3D characterisation dataset: 7,663
   firebrands reconstructed in three dimensions from 372 controlled burning
-  experiments, paired with the visible-light and thermal recordings of the
+  experiments, paired with the RGB and thermal recordings of the
   burns that produced them. Firebrands are browsed by fuel family with facets
   that follow the family, each experiment's recordings are playable including
   continuation segments, and every firebrand's mesh can be inspected in 3D

@@ -2,7 +2,7 @@
 
 A browser viewer for the Firebrand3D characterisation dataset: **7,663 firebrands**
 reconstructed in three dimensions from **372 controlled burning experiments**, paired with the
-visible-light and thermal recordings of the burns that produced them.
+RGB and thermal recordings of the burns that produced them.
 
 Live at **https://firebrand3d.flarewildfire.app/**
 
@@ -16,7 +16,7 @@ measured three-dimensional shapes did not exist. This dataset is that measuremen
 - Browse experiments by fuel family, with facets that follow the family — bark hazard rating
   applies only to fibrous bark, sample length only to candlebark, fuel structure only to
   branchlet
-- Play every recording of an experiment, including continuation segments
+- Play every RGB and thermal recording of an experiment, including continuation segments
 - Inspect any firebrand's mesh in 3D, with its measured volume, surface area, V/Sa, bounding
   dimensions, mass and density
 - See the data-quality note attached to each measurement, so a mass at the balance's

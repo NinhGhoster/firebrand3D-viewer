@@ -391,7 +391,9 @@ function selectRun(run) {
   document.getElementById('active-workspace').style.display = 'grid';
 
   document.getElementById('detail-title').textContent = run.title;
-  document.getElementById('detail-id').textContent = run.id;
+  const idEl = document.getElementById('detail-id');
+  idEl.textContent = run.id;
+  idEl.title = run.id;          // the element truncates; keep the full value reachable
 
   const badges = document.getElementById('detail-badges');
   const chips = [

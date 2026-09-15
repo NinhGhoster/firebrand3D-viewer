@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="index.css?v=20260916d">
+  <link rel="stylesheet" href="index.css?v=20260916i">
 
   <!-- Libraries are served from this host. A CDN outage or a network that blocks it would
        otherwise leave the page loading and then silently blank. -->
@@ -154,7 +154,7 @@
             <div class="detail-body">
               <div class="video-container">
                 <div class="video-tab-header">
-                  <button id="tab-btn-rgb" class="tab-btn active">Visible-light video</button>
+                  <button id="tab-btn-rgb" class="tab-btn active">RGB video</button>
                   <button id="tab-btn-thermal" class="tab-btn">Thermal video</button>
                 </div>
 
@@ -172,14 +172,18 @@
 
                   <div id="viewport-thermal" class="video-pane" style="display:none;">
                     <div id="segments-thermal" class="segment-strip"></div>
-                    <div class="video-wrapper">
-                      <video id="video-thermal" controls preload="metadata" playsinline></video>
-                      <div id="video-thermal-empty" class="video-empty-state" style="display:none;"><span></span></div>
+                    <!-- The scale sits beside the frame, never over it: an overlay hid the
+                         right-hand edge of the thermal image. -->
+                    <div class="thermal-stage">
+                      <div class="video-wrapper">
+                        <video id="video-thermal" controls preload="metadata" playsinline></video>
+                        <div id="video-thermal-empty" class="video-empty-state" style="display:none;"><span></span></div>
+                      </div>
                       <!-- Range comes from each record's own encoding, not a fixed scale. -->
                       <div id="thermal-scale-legend" class="thermal-legend">
-                        <span id="legend-temp-low" class="legend-temp">—</span>
-                        <div class="color-bar"></div>
                         <span id="legend-temp-high" class="legend-temp">—</span>
+                        <div class="color-bar"></div>
+                        <span id="legend-temp-low" class="legend-temp">—</span>
                         <span id="legend-note" class="legend-note"></span>
                       </div>
                     </div>
@@ -260,6 +264,6 @@
     </div>
   </div>
 
-  <script type="module" src="app.js?v=20260916d"></script>
+  <script type="module" src="app.js?v=20260916i"></script>
 </body>
 </html>

@@ -1493,3 +1493,110 @@ body.sidebar-open .sidebar-scrim { display: block; }
 @media (min-width: 1025px) {
   .video-pane .video-wrapper { height: auto; flex: 1 1 auto; min-height: 0; }
 }
+
+/* ==========================================================================
+   Thermal scale beside the frame, not over it.
+   As an overlay pinned inside .video-wrapper it covered the right-hand edge of
+   the thermal image — part of the recording was simply not visible. It is now a
+   sibling of the frame in a row, so the image is never obscured, and the markup
+   runs high-to-low so no flex reversal is needed.
+   ========================================================================== */
+.thermal-stage {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: 10px;
+  min-height: 0;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.thermal-stage .video-wrapper { flex: 0 1 auto; min-width: 0; }
+
+#thermal-scale-legend {
+  position: static;                 /* was absolute, pinned over the video */
+  flex: none;
+  display: flex;
+  flex-direction: column;           /* markup is high, bar, low */
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 10px;
+  max-height: none;
+  align-self: center;
+  background: var(--bg-legend);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  cursor: help;
+}
+#thermal-scale-legend .color-bar {
+  width: 10px;
+  height: clamp(60px, 100%, 220px);
+  flex: 1 1 auto;
+  min-height: 40px;
+}
+#thermal-scale-legend .legend-temp { font-size: 10px; white-space: nowrap; }
+
+@media (max-width: 640px) {
+  .thermal-stage { gap: 6px; }
+  #thermal-scale-legend { padding: 6px 7px; }
+  #thermal-scale-legend .color-bar { width: 8px; }
+}
+
+/* ==========================================================================
+   Expand video: the row needs a definite height.
+   In focused mode row 1 was `auto`, so a card told to fill 100% of a row that
+   was itself sized by its content had nothing to resolve against and the player
+   collapsed to a sliver.
+   ========================================================================== */
+@media (min-width: 1025px) {
+  .workspace-grid.video-focused { grid-template-rows: minmax(0, 62vh) minmax(280px, auto); }
+  .workspace-grid.video-focused .details-card  { height: 100%; align-self: stretch; }
+  .workspace-grid.video-focused .viewport-card { min-height: 280px; }
+}
+@media (max-width: 1024px) {
+  .workspace-grid.video-focused .details-card { height: auto; }
+}
+
+/* Inside the thermal stage the frame is a row item, so it must take its height
+   from the stage and compute its width from the ratio — otherwise it grows to
+   fill the row's width and derives a height taller than the space, which the
+   card then clips. */
+.thermal-stage .video-wrapper {
+  height: 100%;
+  width: auto;
+  max-width: 100%;
+  flex: 0 1 auto;
+}
+
+/* Expand video: the row needs a FIXED height, not a content-sized one.
+   With `auto` or `minmax(..., auto)` the row is sized by its content, the card
+   fills the row, and the frame fills the card — a loop with no definite value,
+   which resolves to zero and collapses the player. In normal mode the 3D
+   panel's min-height breaks that loop; in focused mode it moves to row 2, so
+   nothing does. A fixed track breaks it directly. */
+@media (min-width: 1025px) {
+  /* Expanding should actually enlarge the player: the frame is height-driven, so the
+     row has to be generous or the video stays small in a very wide card. */
+  .workspace-grid.video-focused { grid-template-rows: min(78vh, 820px) minmax(280px, auto); }
+}
+/* Below the desktop breakpoint the cards stack and size to content, so the frame
+   must not try to fill a parent that has no definite height. */
+@media (max-width: 1024px) {
+  .workspace-grid.video-focused .video-wrapper { height: auto; flex: 0 0 auto; }
+  .workspace-grid.video-focused .thermal-stage .video-wrapper { height: auto; }
+}
+
+/* The identifier is long for candlebark and wrapped onto a second line, pushing
+   the copy button below it and making the header taller than it needs to be.
+   One line with an ellipsis; the full value is still what gets copied, and it
+   is in the tooltip. */
+.detail-id-row { flex-wrap: nowrap; }
+.detail-id {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow-wrap: normal;
+  min-width: 0;
+  flex: 0 1 auto;
+}
+.detail-id-row .btn { flex: none; }
