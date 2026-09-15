@@ -1,0 +1,32 @@
+cff-version: 1.2.0
+title: Firebrand3D viewer
+message: >-
+  If you use this software or the dataset it presents, please cite the data
+  descriptor once it is published.
+type: software
+authors:
+  - given-names: Ha-Ninh
+    family-names: Nguyen
+    affiliation: >-
+      FLARE Wildfire Research, School of Ecosystem and Forest Sciences,
+      The University of Melbourne
+repository-code: https://github.com/NinhGhoster/firebrand3D-viewer
+url: https://firebrand3d.flarewildfire.app/
+abstract: >-
+  A browser viewer for the Firebrand3D characterisation dataset: 7,663
+  firebrands reconstructed in three dimensions from 372 controlled burning
+  experiments, paired with the visible-light and thermal recordings of the
+  burns that produced them. Firebrands are browsed by fuel family with facets
+  that follow the family, each experiment's recordings are playable including
+  continuation segments, and every firebrand's mesh can be inspected in 3D
+  alongside its measured volume, surface area, volume-to-surface-area ratio,
+  bounding dimensions, mass and density.
+keywords:
+  - wildfire
+  - bushfire
+  - firebrand
+  - spotting
+  - fire science
+  - research data
+  - 3D morphology
+license: GPL-3.0
