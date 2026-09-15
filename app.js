@@ -88,6 +88,7 @@ async function initApp() {
   step('theme', setupThemeToggle);
   step('video tabs', setupVideoTabs);
   step('render controls', setupRenderControls);
+  step('video focus', setupVideoFocusToggle);
   step('sidebar', setupSidebarToggle);
 
   if (!step('3D viewport', initThreeViewport)) {
@@ -558,6 +559,29 @@ function setupVideoTabs() {
       }
     });
   }
+}
+
+/**
+ * Expand the video to the full width of the workspace.
+ *
+ * The focused grid row must be a fixed length. With a content-sized row the card fills the
+ * row, the frame fills the card and the row is sized by the frame — a loop with no definite
+ * value, which resolves to zero and collapses the player. Normal mode escapes it because the
+ * 3D panel carries a min-height, but that card moves to the second row when focused.
+ */
+function setupVideoFocusToggle() {
+  const btn = document.getElementById('btn-toggle-video-focus');
+  const workspace = document.getElementById('active-workspace');
+  if (!btn || !workspace) return;
+  btn.addEventListener('click', () => {
+    const focused = workspace.classList.toggle('video-focused');
+    const icon = btn.querySelector('.icon');
+    const text = btn.querySelector('.text');
+    if (icon) icon.textContent = focused ? '⤡' : '⤢';
+    if (text) text.textContent = focused ? 'Shrink video' : 'Expand video';
+    btn.title = focused ? 'Return the video to its normal size' : 'Give the video the full width';
+    // The 3D canvas changes size with the layout; its ResizeObserver handles the rest.
+  });
 }
 
 function setupSidebarToggle() {

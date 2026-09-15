@@ -1645,3 +1645,169 @@ body.sidebar-open .sidebar-scrim { display: block; }
 .workspace-grid.video-focused .details-card,
 .workspace-grid.video-focused .viewport-card,
 .workspace-grid.video-focused .table-card { grid-column: auto; grid-row: auto; }
+
+/* ==========================================================================
+   Expand video, restored.
+   The header goes back to a row so the button sits beside the heading without
+   costing a line, and the focused layout gets a FIXED row height — the value
+   that made it work before. A content-sized row is what collapsed the player to
+   zero: the card fills the row, the frame fills the card, and the row is sized
+   by the frame, so nothing has a definite value to resolve against.
+   ========================================================================== */
+.detail-header {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+.detail-header > .btn { flex: none; }
+
+/* Undo the neutralising rules added when the mode was removed. */
+@media (min-width: 1025px) {
+  .workspace-grid.video-focused { grid-template-rows: min(78vh, 820px) minmax(280px, auto); }
+  .workspace-grid.video-focused .details-card  { grid-column: 1 / -1; grid-row: 1 / 2; height: 100%; align-self: stretch; }
+  .workspace-grid.video-focused .viewport-card { grid-column: 1 / 2; grid-row: 2 / 3; min-height: 280px; }
+  .workspace-grid.video-focused .table-card    { grid-column: 2 / 3; grid-row: 2 / 3; }
+}
+@media (max-width: 1024px) {
+  .workspace-grid.video-focused .details-card,
+  .workspace-grid.video-focused .viewport-card,
+  .workspace-grid.video-focused .table-card { grid-column: 1 / -1; grid-row: auto; }
+  .workspace-grid.video-focused .details-card { height: auto; }
+  .workspace-grid.video-focused .video-wrapper { height: auto; flex: 0 0 auto; }
+  .workspace-grid.video-focused .thermal-stage .video-wrapper { height: auto; }
+}
+
+/* ==========================================================================
+   Pass the available height all the way down to the frame.
+   flex: 1 1 auto sizes an item to its content first and only then lets it grow,
+   so each level of the chain measured the frame instead of telling it how much
+   room it had — the video ended up 300x225 inside a 1132px card when expanded.
+   A zero basis makes each level take the free space outright, which gives the
+   frame a definite height to compute its width from.
+   ========================================================================== */
+@media (min-width: 1025px) {
+  .detail-body     { flex: 1 1 0; min-height: 0; }
+  .video-container { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; }
+  .video-viewports { flex: 1 1 0; min-height: 0; }
+  .video-pane      { flex: 1 1 0; min-height: 0; height: auto; }
+  .thermal-stage   { flex: 1 1 0; min-height: 0; }
+  .video-pane .video-wrapper,
+  .thermal-stage .video-wrapper { height: 100%; width: auto; max-width: 100%; flex: 0 1 auto; }
+}
+
+/* height:100% needs a parent with a *definite* height. Through a flex chain that
+   is not guaranteed, and when it fails the frame falls back to the video's
+   intrinsic size — 1024x768, overflowing the card. Taking the height from the
+   flex line instead (stretch in the row, a zero basis in the column) always
+   resolves, and aspect-ratio then computes the width. */
+@media (min-width: 1025px) {
+  .thermal-stage > .video-wrapper {
+    align-self: stretch;
+    flex: 0 1 auto;
+    height: auto;
+    max-height: 100%;
+    width: auto;
+    max-width: 100%;
+  }
+  .video-pane > .video-wrapper {
+    flex: 1 1 0;
+    min-height: 0;
+    height: auto;
+    max-height: 100%;
+    width: auto;
+    max-width: 100%;
+    align-self: center;
+  }
+}
+
+/* ==========================================================================
+   FINAL: the frame fills its area; the video letterboxes inside it.
+   Sizing the box itself to the recording's aspect ratio through three nested
+   flex containers proved unreliable — height:100% needs a definite parent, a
+   zero basis and stretch each resolved differently, and the frame came out
+   either 300x225 or its full 1024x768 depending on which rule won. The box now
+   simply fills the space it is given and the video is positioned to fill that
+   box with object-fit: contain, which shows the entire frame at the right
+   proportions whatever the window does. Any spare room reads as black around
+   the image, the way every video player behaves. Correctness over hugging: the
+   fire and the firebrands are in the lower half of every thermal frame, so
+   losing the bottom is the one outcome that must not happen.
+   ========================================================================== */
+.video-wrapper {
+  position: relative;
+  aspect-ratio: auto;
+  height: auto;
+  width: 100%;
+  max-width: 100%;
+  max-height: none;
+  min-height: 0;
+  background: #000;
+  overflow: hidden;
+  display: block;
+}
+.video-wrapper video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+.video-wrapper .video-empty-state { position: absolute; inset: 0; }
+
+/* Give that box a definite area to fill. */
+@media (min-width: 1025px) {
+  .video-pane > .video-wrapper,
+  .thermal-stage > .video-wrapper { flex: 1 1 0; min-height: 120px; align-self: stretch; height: auto; width: auto; }
+  .thermal-stage > .video-wrapper { flex: 1 1 auto; }
+}
+@media (max-width: 1024px) {
+  /* Stacked layout has no row height to inherit, so the box needs one of its own. */
+  .video-wrapper { aspect-ratio: var(--vid-aspect, 16 / 9); }
+  .thermal-stage > .video-wrapper { flex: 1 1 auto; }
+}
+
+/* ==========================================================================
+   Give the video area an explicit height per mode.
+   Propagating height through pane -> stage -> frame depended on three flex
+   containers each resolving a definite height, and they did not: the frame came
+   out 300x225, then 1024x768, then a 139px strip, depending on which rule won.
+   The card's height is known in each mode, so the video area is simply given
+   the room that is left after the header, tabs and segment strip. The video
+   fills that box with object-fit: contain, so the whole frame is always visible
+   whatever the window size.
+   ========================================================================== */
+@media (min-width: 1025px) {
+  /* Normal: the row is 520px (set by the 3D panel's minimum). */
+  .video-wrapper { height: 330px; flex: 0 0 auto; align-self: stretch; }
+  .thermal-stage > .video-wrapper { flex: 1 1 auto; width: auto; }
+  .video-pane > .video-wrapper { width: 100%; }
+
+  /* Expanded: the row is min(78vh, 820px), so the video gets that less the chrome. */
+  .workspace-grid.video-focused .video-wrapper { height: calc(min(78vh, 820px) - 185px); }
+}
+@media (max-width: 1024px) {
+  .video-wrapper { height: auto; aspect-ratio: var(--vid-aspect, 16 / 9); flex: 0 0 auto; }
+  .thermal-stage > .video-wrapper { flex: 1 1 auto; width: auto; }
+}
+#thermal-scale-legend { align-self: stretch; }
+
+/* The height above lost to an earlier `.video-pane > .video-wrapper { height: auto }`:
+   two classes beat one, whatever the order. Set at matching specificity. */
+@media (min-width: 1025px) {
+  .video-pane > .video-wrapper,
+  .thermal-stage > .video-wrapper {
+    height: 330px;
+    min-height: 0;
+    flex: 0 0 auto;
+    align-self: stretch;
+  }
+  .thermal-stage > .video-wrapper { flex: 1 1 auto; width: auto; }
+  .video-pane > .video-wrapper { width: 100%; }
+
+  .workspace-grid.video-focused .video-pane > .video-wrapper,
+  .workspace-grid.video-focused .thermal-stage > .video-wrapper {
+    height: calc(min(78vh, 820px) - 185px);
+  }
+}
