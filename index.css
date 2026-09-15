@@ -1292,3 +1292,139 @@ body.sidebar-open .sidebar-scrim { display: block; }
   .viewport-controls { width: 100%; }
   .viewport-controls .btn { flex: 1 1 auto; }
 }
+
+/* ==========================================================================
+   Video sizing — never crop, and take the shape of whatever loaded.
+   The wrapper was fixed at 16:9 with object-fit: cover. RGB is 1920x1080 and
+   fits, but the thermal camera is 1024x768, so a quarter of every thermal
+   frame was being cut off — in a recording where a firebrand may be in the
+   lost strip. --vid-aspect is set from the video's own dimensions as soon as
+   metadata arrives, so any future source is handled too.
+   ========================================================================== */
+.video-wrapper {
+  aspect-ratio: var(--vid-aspect, 16 / 9);
+  max-height: min(56vh, 520px);
+  margin-inline: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.video-wrapper video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;      /* was cover: it cropped the 4:3 thermal frames */
+  display: block;
+}
+/* The wrapper keeps the video's ratio, so the letterbox only appears while the
+   height cap is binding; the surrounding black then reads as intentional. */
+.video-viewports { min-width: 0; }
+
+@media (max-width: 1024px) {
+  .video-wrapper { max-height: min(48vh, 420px); }
+}
+@media (max-width: 640px) {
+  .video-wrapper { max-height: 42vh; }
+}
+/* A short, wide window is the case that pushed the player off screen entirely. */
+@media (max-height: 700px) {
+  .video-wrapper { max-height: 40vh; }
+}
+
+/* ==========================================================================
+   Thermal colour scale — rebuilt.
+   It was anchored at left:90% with only a -5% shift, so it hung off the right
+   edge, and its bar was a fixed 200px inside a player that can be 250px tall.
+   Now a compact vertical scale pinned inside the frame, sized relative to it,
+   reading high at the top to match the gradient.
+   ========================================================================== */
+.thermal-legend {
+  left: auto;
+  right: 12px;
+  bottom: 12px;
+  transform: none;
+  flex-direction: column-reverse;   /* markup is low, bar, high; show high on top */
+  align-items: center;
+  gap: 6px;
+  padding: 8px 9px;
+  border-radius: 12px;
+  max-height: calc(100% - 24px);
+  cursor: help;
+}
+.thermal-legend .color-bar {
+  width: 8px;
+  height: clamp(48px, 18vh, 140px);
+}
+.legend-temp { font-size: 10px; line-height: 1.2; white-space: nowrap; }
+/* The explanation is long and does not belong inside a small overlay; it is set
+   as the element's tooltip instead. */
+#legend-note { display: none; }
+
+@media (max-width: 640px) {
+  .thermal-legend { right: 8px; bottom: 8px; padding: 6px 7px; }
+  .thermal-legend .color-bar { height: clamp(40px, 14vh, 90px); }
+}
+
+/* ==========================================================================
+   Fitting the detail panel to narrow windows
+   ========================================================================== */
+
+/* A badge is a label, not a paragraph: let the row wrap between badges rather
+   than breaking "FIBROUS BARK" across two lines inside its own pill. */
+.badge { white-space: nowrap; }
+.badge-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+
+/* The legend is absolutely positioned inside the player, so it must be sized
+   against the player and not the viewport — 18vh overflowed a short frame. */
+.thermal-legend .color-bar { height: clamp(40px, 9vh, 96px); }
+.thermal-legend { max-height: calc(100% - 20px); overflow: hidden; }
+
+/* The metrics panel annotates the mesh and must not bury it. Capped as a share
+   of the panel it floats over, so a narrow 3D pane keeps the model visible. */
+.hud-overlay {
+  max-width: min(210px, 42%);
+  font-size: 10.5px;
+  background: color-mix(in srgb, var(--bg-hud) 92%, transparent);
+}
+.hud-item { gap: 10px; }
+@media (max-width: 1280px) {
+  .hud-overlay { max-width: min(180px, 46%); padding: 8px 9px; }
+  .hud-uid { display: none; }        /* the id is in the table; the model is not */
+}
+
+/* ==========================================================================
+   Make the frame hug the recording.
+   With width:100% and only a max-height, a height cap leaves the box wider
+   than the video and object-fit:contain letterboxes it. Driving the height
+   instead lets aspect-ratio compute the width, so the frame matches the
+   recording at any window size and the black surround disappears.
+   ========================================================================== */
+.video-wrapper {
+  height: min(56vh, 520px);
+  width: auto;
+  max-width: 100%;
+  max-height: none;
+}
+@media (max-width: 1024px) { .video-wrapper { height: min(46vh, 420px); } }
+@media (max-width: 640px)  { .video-wrapper { height: 40vh; } }
+/* A short window is the awkward case: keep the player usable without letting it
+   push the table off the screen. */
+@media (max-height: 760px) { .video-wrapper { height: min(46vh, 340px); } }
+@media (max-height: 560px) { .video-wrapper { height: 44vh; } }
+
+/* ==========================================================================
+   Video pane: the segment strip stacks above the frame.
+   The strip used to live inside .video-wrapper, so once that became a flex row
+   sized to the recording's aspect ratio the strip was laid out beside the
+   video and pushed out of the card.
+   ========================================================================== */
+.video-pane {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+.video-pane .segment-strip { flex: none; border-radius: 8px; border-bottom: none; }
+.video-pane .video-wrapper { flex: none; align-self: center; }
+.video-viewports { flex-direction: column; align-items: stretch; }

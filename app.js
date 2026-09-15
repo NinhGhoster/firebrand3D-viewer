@@ -107,13 +107,18 @@ async function initApp() {
  * or cited. Without this the only way to reach a run is to find it in the list again.
  */
 function openFromHash() {
-  const match = /^#run=(.+)$/.exec(decodeURIComponent(location.hash || ''));
+  const raw = decodeURIComponent(location.hash || '');
+  const match = /^#run=([^&]+)(?:&tab=(rgb|thermal))?$/.exec(raw);
   if (!match) return;
   const run = allRuns.find(r => r.id === match[1]);
-  if (!run || (selectedRun && selectedRun.id === run.id)) return;
-  selectRun(run);
-  document.querySelectorAll('.run-item').forEach(el =>
-    el.classList.toggle('active', el.getAttribute('data-id') === run.id));
+  if (!run) return;
+  if (!selectedRun || selectedRun.id !== run.id) {
+    selectRun(run);
+    document.querySelectorAll('.run-item').forEach(el =>
+      el.classList.toggle('active', el.getAttribute('data-id') === run.id));
+  }
+  // A link can name the tab as well as the experiment, so the thermal view is shareable.
+  if (match[2]) document.getElementById(`tab-btn-${match[2]}`)?.click();
 }
 
 /** Report a dead viewport in the viewport, not as a database error. */
@@ -479,6 +484,15 @@ function loadSegment(kind, index) {
   video.style.display = 'block';
   empty.style.display = 'none';
 
+  // Size the frame to the recording rather than assuming 16:9. RGB is 1920x1080 but the
+  // thermal camera is 1024x768, and a fixed 16:9 frame cropped a quarter off every thermal
+  // video. Reading the dimensions means any future source is handled without a code change.
+  video.addEventListener('loadedmetadata', () => {
+    if (!video.videoWidth || !video.videoHeight) return;
+    const wrapper = video.closest('.video-wrapper');
+    if (wrapper) wrapper.style.setProperty('--vid-aspect', `${video.videoWidth} / ${video.videoHeight}`);
+  }, { once: true });
+
   if (kind === 'thermal') updateThermalLegend(seg);
 }
 
@@ -488,15 +502,20 @@ function updateThermalLegend(seg) {
   const hi = document.getElementById('legend-temp-high');
   const note = document.getElementById('legend-note');
   if (!lo || !hi) return;
+  const legend = document.getElementById('thermal-scale-legend');
   if (seg && seg.threshold_degC !== null && seg.threshold_degC !== undefined) {
-    lo.textContent = `${seg.threshold_degC.toFixed(0)} °C`;
+    lo.textContent = `${seg.threshold_degC.toFixed(0)}°C`;
     hi.textContent = 'peak';
-    if (note) note.textContent = 'Colour spans this record’s own encoded range.';
+    // Long text does not fit a small overlay, so it becomes the tooltip.
+    if (legend) legend.title =
+      `Brightness spans this recording's own encoded range, from ${seg.threshold_degC.toFixed(0)} °C `
+      + 'up to the hottest pixel in the record. The scale is not shared between records.';
   } else {
     lo.textContent = '—';
     hi.textContent = '—';
-    if (note) note.textContent = 'Encoded range not recorded for this file.';
+    if (legend) legend.title = 'The encoded temperature range was not recorded for this file.';
   }
+  if (note) note.textContent = '';
 }
 
 function setupVideoTabs() {
@@ -509,6 +528,16 @@ function setupVideoTabs() {
       document.getElementById(`viewport-${kind}`).style.display = 'block';
       document.getElementById(`viewport-${map[kind]}`).style.display = 'none';
       document.getElementById(`video-${map[kind]}`).pause();
+      if (selectedRun) {
+        const t = `#run=${encodeURIComponent(selectedRun.id)}` + (kind === 'thermal' ? '&tab=thermal' : '');
+        if (location.hash !== t) history.replaceState(null, '', t);
+      }
+      // The panel was hidden when its video loaded, so re-apply the ratio now it is visible.
+      const v = document.getElementById(`video-${kind}`);
+      if (v?.videoWidth) {
+        v.closest('.video-wrapper')?.style.setProperty('--vid-aspect',
+          `${v.videoWidth} / ${v.videoHeight}`);
+      }
     });
   }
 }
