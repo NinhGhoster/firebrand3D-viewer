@@ -1428,3 +1428,68 @@ body.sidebar-open .sidebar-scrim { display: block; }
 .video-pane .segment-strip { flex: none; border-radius: 8px; border-bottom: none; }
 .video-pane .video-wrapper { flex: none; align-self: center; }
 .video-viewports { flex-direction: column; align-items: stretch; }
+
+/* ==========================================================================
+   The card must grow to the video, not clip it.
+   Giving .video-wrapper a fixed height made it taller than the space the card
+   allowed, and .detail-body's overflow:hidden then cut the bottom off — losing
+   the end of the frame and the playback controls with it. The height now
+   follows the width through aspect-ratio, .detail-body sizes to its content
+   instead of being a flex:1 box that clips, and the grid row grows to suit.
+   ========================================================================== */
+.video-wrapper {
+  height: auto;
+  width: 100%;
+  max-width: 100%;
+  max-height: none;
+  aspect-ratio: var(--vid-aspect, 16 / 9);
+}
+.detail-body {
+  flex: 0 0 auto;
+  overflow: visible;
+  min-height: 0;
+}
+.video-container { height: auto; }
+.video-viewports { flex: 0 0 auto; }
+.details-card { height: auto; align-self: start; }
+
+/* Keep the player from dominating a very wide window, where a 4:3 frame at full
+   column width would be taller than the screen. Applied as a width cap so the
+   frame still matches the recording exactly — no letterboxing. */
+.video-wrapper { max-width: min(100%, calc((100vh - 300px) * var(--vid-ar-num, 1.78))); }
+
+/* ==========================================================================
+   Final sizing rule: the video is driven by the height available, not by its
+   own width.
+   Letting the frame set its own height made the card 637px inside a 460px grid
+   row, so it painted over the table; capping by viewport height instead made it
+   taller than the card, so overflow:hidden cut the controls off. Both failed for
+   the same reason — the frame was sizing itself without reference to the space
+   it had. Now the card fills its row, each wrapper passes the remaining height
+   down, and the frame takes 100% of it with the width computed from the
+   recording's aspect ratio. It cannot overflow, cannot be clipped, and hugs the
+   image whenever the column is wide enough.
+   ========================================================================== */
+@media (min-width: 1025px) {
+  .details-card    { height: 100%; align-self: stretch; }
+  .detail-body     { flex: 1 1 auto; min-height: 0; overflow: hidden; }
+  .video-container { height: 100%; min-height: 0; }
+  .video-viewports { flex: 1 1 auto; min-height: 0; }
+  .video-pane      { height: 100%; min-height: 0; }
+  .video-wrapper {
+    height: 100%;
+    width: auto;
+    max-width: 100%;
+    max-height: none;
+    align-self: center;
+  }
+  /* Row 1 is sized by the 3D panel's minimum; give the video room to be useful. */
+  .viewport-card { min-height: 520px; }
+}
+
+/* The frame must take the height LEFT OVER after the segment strip, not 100% of
+   the pane that also contains the strip — that overshot by exactly the strip's
+   height and clipped the bottom of the controls. */
+@media (min-width: 1025px) {
+  .video-pane .video-wrapper { height: auto; flex: 1 1 auto; min-height: 0; }
+}

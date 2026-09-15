@@ -490,7 +490,11 @@ function loadSegment(kind, index) {
   video.addEventListener('loadedmetadata', () => {
     if (!video.videoWidth || !video.videoHeight) return;
     const wrapper = video.closest('.video-wrapper');
-    if (wrapper) wrapper.style.setProperty('--vid-aspect', `${video.videoWidth} / ${video.videoHeight}`);
+    if (!wrapper) return;
+    wrapper.style.setProperty('--vid-aspect', `${video.videoWidth} / ${video.videoHeight}`);
+    // Numeric form of the same ratio, used by the width cap that keeps a tall 4:3
+    // frame from outgrowing the window without letterboxing it.
+    wrapper.style.setProperty('--vid-ar-num', (video.videoWidth / video.videoHeight).toFixed(4));
   }, { once: true });
 
   if (kind === 'thermal') updateThermalLegend(seg);
@@ -535,8 +539,9 @@ function setupVideoTabs() {
       // The panel was hidden when its video loaded, so re-apply the ratio now it is visible.
       const v = document.getElementById(`video-${kind}`);
       if (v?.videoWidth) {
-        v.closest('.video-wrapper')?.style.setProperty('--vid-aspect',
-          `${v.videoWidth} / ${v.videoHeight}`);
+        const w = v.closest('.video-wrapper');
+        w?.style.setProperty('--vid-aspect', `${v.videoWidth} / ${v.videoHeight}`);
+        w?.style.setProperty('--vid-ar-num', (v.videoWidth / v.videoHeight).toFixed(4));
       }
     });
   }
