@@ -88,7 +88,6 @@ async function initApp() {
   step('theme', setupThemeToggle);
   step('video tabs', setupVideoTabs);
   step('render controls', setupRenderControls);
-  step('video focus', setupVideoFocusToggle);
   step('sidebar', setupSidebarToggle);
 
   if (!step('3D viewport', initThreeViewport)) {
@@ -486,6 +485,15 @@ function loadSegment(kind, index) {
   video.style.display = 'block';
   empty.style.display = 'none';
 
+  // Thermal sidecars record the true frame size, so the frame can be shaped before a single
+  // byte of video arrives. Waiting on loadedmetadata left it at 16:9 in the meantime, which
+  // is where the 4:3 thermal recordings appeared clipped.
+  const wrapper = video.closest('.video-wrapper');
+  if (wrapper && seg.width && seg.height) {
+    wrapper.style.setProperty('--vid-aspect', `${seg.width} / ${seg.height}`);
+    wrapper.style.setProperty('--vid-ar-num', (seg.width / seg.height).toFixed(4));
+  }
+
   // Size the frame to the recording rather than assuming 16:9. RGB is 1920x1080 but the
   // thermal camera is 1024x768, and a fixed 16:9 frame cropped a quarter off every thermal
   // video. Reading the dimensions means any future source is handled without a code change.
@@ -509,13 +517,16 @@ function updateThermalLegend(seg) {
   const note = document.getElementById('legend-note');
   if (!lo || !hi) return;
   const legend = document.getElementById('thermal-scale-legend');
-  if (seg && seg.threshold_degC !== null && seg.threshold_degC !== undefined) {
-    lo.textContent = `${seg.threshold_degC.toFixed(0)}°C`;
-    hi.textContent = 'peak';
-    // Long text does not fit a small overlay, so it becomes the tooltip.
+  const has = seg && seg.min_degC !== null && seg.min_degC !== undefined
+                  && seg.max_degC !== null && seg.max_degC !== undefined;
+  if (has) {
+    // The real range the greyscale was encoded against, from the recording's sidecar.
+    lo.textContent = `${Math.round(seg.min_degC)}°C`;
+    hi.textContent = `${Math.round(seg.max_degC)}°C`;
     if (legend) legend.title =
-      `Brightness spans this recording's own encoded range, from ${seg.threshold_degC.toFixed(0)} °C `
-      + 'up to the hottest pixel in the record. The scale is not shared between records.';
+      `Brightness maps linearly from ${seg.min_degC.toFixed(1)} °C (black) to `
+      + `${seg.max_degC.toFixed(1)} °C (white) for this recording. Each recording is encoded `
+      + 'against its own range, so brightness is not comparable between them.';
   } else {
     lo.textContent = '—';
     hi.textContent = '—';
@@ -547,20 +558,6 @@ function setupVideoTabs() {
       }
     });
   }
-}
-
-function setupVideoFocusToggle() {
-  const btn = document.getElementById('btn-toggle-video-focus');
-  const workspace = document.getElementById('active-workspace');
-  if (!btn || !workspace) return;
-  btn.addEventListener('click', () => {
-    const focused = workspace.classList.toggle('video-focused');
-    const icon = btn.querySelector('.icon');
-    const text = btn.querySelector('.text');
-    if (icon) icon.textContent = focused ? '⤡' : '⤢';
-    if (text) text.textContent = focused ? 'Shrink video' : 'Expand video';
-    // No timer: the ResizeObserver on the canvas container picks the change up.
-  });
 }
 
 function setupSidebarToggle() {

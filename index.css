@@ -1600,3 +1600,48 @@ body.sidebar-open .sidebar-scrim { display: block; }
   flex: 0 1 auto;
 }
 .detail-id-row .btn { flex: none; }
+
+/* ==========================================================================
+   Compact detail header, taller thermal scale
+   Expand mode is gone — double-clicking the video gives full screen — so the
+   header loses its button and can tighten up, handing the room to the video.
+   ========================================================================== */
+.detail-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 16px 10px;
+}
+.detail-header .detail-heading { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.detail-header h2 { font-size: 1.05rem; line-height: 1.2; margin: 0; }
+.detail-header .badge-row { gap: 5px; }
+.detail-header .badge { font-size: 0.62rem; padding: 2px 8px; }
+.detail-header .detail-id-row { margin-top: 0; }
+.detail-header .detail-id { font-size: 0.65rem; padding: 2px 7px; }
+.video-tab-header .tab-btn { padding: 9px 14px; }
+
+/* A tall scale reads a temperature range far better than a short one, and there
+   is now room for it. */
+#thermal-scale-legend {
+  align-self: stretch;
+  justify-content: space-between;
+  padding: 10px 10px;
+}
+#thermal-scale-legend .color-bar {
+  width: 12px;
+  height: auto;
+  flex: 1 1 auto;
+  min-height: 80px;
+  max-height: none;
+}
+#thermal-scale-legend .legend-temp { font-size: 10.5px; font-variant-numeric: tabular-nums; }
+
+@media (max-width: 640px) {
+  #thermal-scale-legend { padding: 8px 7px; }
+  #thermal-scale-legend .color-bar { width: 9px; min-height: 60px; }
+}
+
+/* Expand mode is gone; drop the rules that positioned it. */
+.workspace-grid.video-focused .details-card,
+.workspace-grid.video-focused .viewport-card,
+.workspace-grid.video-focused .table-card { grid-column: auto; grid-row: auto; }

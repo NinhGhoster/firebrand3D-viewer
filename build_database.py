@@ -171,12 +171,28 @@ def main():
             segs = []
             for p in sorted(thermal.get(eid, [])):
                 tp = thermal_params.get(p, {})
+                # The sidecar beside each thermal video carries the frame size and the
+                # temperature range the greyscale was encoded against. Reading it here means
+                # the viewer can size the frame and label the scale from data, instead of
+                # waiting on the video element's metadata and guessing 16:9 until it arrives.
+                side = {}
+                jp = os.path.join(LEVEL2, os.path.splitext(p)[0] + ".json")
+                if os.path.isfile(jp):
+                    try:
+                        with open(jp, encoding="utf-8") as jf:
+                            side = json.load(jf)
+                    except (ValueError, OSError):
+                        side = {}
                 segs.append({
                     "path": prefixed(p),
                     "label": os.path.basename(p).rsplit(".", 1)[0],
                     "threshold_degC": num(tp.get("threshold_degC")),
                     "frame_rate": num(tp.get("frame_rate")),
                     "num_frames": int(tp["num_frames"]) if tp.get("num_frames") else None,
+                    "width": side.get("width"),
+                    "height": side.get("height"),
+                    "min_degC": side.get("min_val"),
+                    "max_degC": side.get("max_val"),
                 })
 
             run = runs[eid] = {
@@ -254,6 +270,8 @@ def main():
         for eid, p_ in dropped[:12]:
             print(f"    {eid}  <-  {p_}")
     print(f"  thermal spans known  {sum(1 for r in out for s in r['thermal_segments'] if s['threshold_degC'] is not None)}")
+    print(f"  thermal with min/max {sum(1 for r in out for s in r['thermal_segments'] if s.get('max_degC') is not None)}")
+    print(f"  thermal with size    {sum(1 for r in out for s in r['thermal_segments'] if s.get('width'))}")
     for fam in sorted({r["fuel_type"] for r in out}):
         print(f"    {fam:28s} {sum(1 for r in out if r['fuel_type'] == fam):4d} runs")
 
