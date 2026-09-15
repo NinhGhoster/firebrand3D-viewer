@@ -6,6 +6,10 @@ RGB and thermal recordings of the burns that produced them.
 
 Live at **https://firebrand3d.flarewildfire.app/**
 
+![The viewer showing one experiment: the RGB recording of the burn, the reconstructed
+firebrand in three dimensions with its measured dimensions, and the table of every firebrand
+recovered from that run.](docs/screenshot.png)
+
 A firebrand is a burning fragment of vegetation carried ahead of a fire. Where it lands
 decides whether a fire spreads by spotting, and that depends on its shape, size and density.
 Fire behaviour models have had to assume firebrands are discs, cylinders or spheres, because
