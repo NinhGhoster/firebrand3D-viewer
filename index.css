@@ -1811,3 +1811,84 @@ body.sidebar-open .sidebar-scrim { display: block; }
     height: calc(min(78vh, 820px) - 185px);
   }
 }
+
+/* ==========================================================================
+   Denser layout — reclaim the space the chrome was taking.
+   The three panels were separated by 24px gaps, 16px radii, shadows and their
+   own borders, which together cost more room than the gaps between them were
+   worth. Panels now sit flush and are divided by a single hairline: the grid's
+   own background shows through 1px gaps, so no panel needs a border of its own
+   and adjacent borders cannot double up. Type goes up rather than down.
+   ========================================================================== */
+
+/* --- Type ---------------------------------------------------------------- */
+body { font-size: 15px; }
+.sidebar .filter-label { font-size: 12px; }
+.section-title { font-size: 15px; }
+.tree-header { font-size: 0.92rem; }
+.tree-subheader { font-size: 0.86rem; }
+.run-item-title { font-size: 0.88rem; }
+.run-item-count { font-size: 0.74rem; }
+#firebrands-table { font-size: 13.5px; }
+#firebrands-table th { font-size: 11.5px; }
+.detail-header h2 { font-size: 1.2rem; }
+.viewport-title, .table-card h2 { font-size: 1.05rem; }
+.hud-overlay { font-size: 11.5px; }
+.group-nav-header h2 { font-size: 12px; }
+
+/* --- Panels divided by a line, not a gap --------------------------------- */
+.workspace { padding: 0; }
+.workspace-grid {
+  gap: 1px;
+  background: var(--border-color);
+  border-top: 1px solid var(--border-color);
+}
+.workspace-grid > .card {
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+.card-header, .detail-header { padding: 10px 14px; }
+.table-card .card-header { padding: 10px 14px 8px; }
+.subtitle-text { font-size: 12px; margin-top: 2px; }
+.video-viewports { padding: 8px; }
+.viewport-body { padding: 0; }
+
+/* The landing panel keeps breathing room; it is prose, not a workspace. */
+.workspace-centered-screen { padding: 24px; }
+
+/* --- Sidebar: the freed space goes to the experiment list ---------------- */
+.search-filter-panel { padding: 14px 16px; gap: 12px; }
+.group-nav-header { padding: 10px 16px 6px; }
+.runs-list { padding: 0 12px 12px; }
+.tree-header, .tree-subheader { padding: 7px 9px; }
+.run-item { padding: 8px 10px; }
+
+/* --- Authors in the header ----------------------------------------------- */
+.header-authors {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.25;
+  margin-right: 4px;
+  cursor: help;
+  min-width: 0;
+}
+.header-authors-label {
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+.header-authors-names {
+  font-size: 11.5px;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 34ch;
+}
+/* Names are the first thing to go when the header runs out of room. */
+@media (max-width: 1280px) { .header-authors-names { max-width: 22ch; } }
+@media (max-width: 1100px) { .header-authors { display: none; } }
