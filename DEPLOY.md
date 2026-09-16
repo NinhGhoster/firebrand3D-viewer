@@ -63,6 +63,37 @@ The site block now sets:
 changing the Caddyfile, `sudo caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile`
 then `sudo systemctl reload caddy`. Backups are written alongside as `Caddyfile.bak.<stamp>`.
 
+## HEVC tagging — why the videos would not play on Apple devices
+
+Every video in the release was tagged **`hev1`**. WebKit only decodes HEVC when the sample
+entry is tagged **`hvc1`**, and on iOS both Safari *and* Chrome are WebKit — so no video of
+either kind played on an iPhone, and Safari on macOS failed the same way. Desktop Chrome uses
+its own decoder and plays either tag, which is why the fault looked browser-specific.
+
+The two tags describe the same bitstream and differ only in whether the parameter sets may be
+in-band. These files carry them out-of-band in `hvcC` (2,438 bytes of extradata), so the tag
+is simply wrong and can be corrected in place:
+
+```bash
+find /mnt/firebrand3d/level2/RGB_videos /mnt/firebrand3d/level2/thermal_videos \
+     -name '*.mp4' -print0 | xargs -0 python3 retag_hvc1.py
+```
+
+`retag_hvc1.py` locates the `moov` atom, finds the fourcc inside it and overwrites four
+bytes. It never reads or touches `mdat`, so the file size is unchanged and the pixels are
+bit-identical — verified with `framemd5` before and after. It took 25 seconds for the whole
+release. Re-muxing with `ffmpeg -c copy -tag:v hvc1` reaches the same result but moves 16 GB
+to change four bytes per file; only reach for it if you also want `+faststart`.
+
+**This is applied to the serving copy on gumnut only.** MediaFlux, Bushfire and the Figshare
+deposit still carry `hev1`, so videos downloaded from the deposit will not play on Apple
+devices. Fixing that changes `checksums.csv`, which covers all 519 videos, so it belongs with
+a deliberate version update rather than a quiet edit.
+
+Retagging does not help Firefox, which has no HEVC support on any platform, nor Android
+devices without an HEVC decoder. Universal playback would need H.264 copies, which is a
+re-encode and needs roughly 16 GB the volume does not have.
+
 ## Not yet done
 
 The site carries no `noindex`. The staging page it replaced did. Add one to `index.html` if
