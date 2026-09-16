@@ -543,7 +543,11 @@ function setupVideoTabs() {
       activeVideoTab = kind;
       document.getElementById(`tab-btn-${kind}`).classList.add('active');
       document.getElementById(`tab-btn-${map[kind]}`).classList.remove('active');
-      document.getElementById(`viewport-${kind}`).style.display = 'block';
+      // Clear the inline value rather than forcing 'block': these panes are flex
+      // columns holding the segment strip and, for thermal, the scale beside the
+      // frame. An inline display:block overrode that and dismantled the layout on
+      // every switch to the tab.
+      document.getElementById(`viewport-${kind}`).style.display = '';
       document.getElementById(`viewport-${map[kind]}`).style.display = 'none';
       document.getElementById(`video-${map[kind]}`).pause();
       if (selectedRun) {

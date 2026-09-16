@@ -1892,3 +1892,16 @@ body { font-size: 15px; }
 /* Names are the first thing to go when the header runs out of room. */
 @media (max-width: 1280px) { .header-authors-names { max-width: 22ch; } }
 @media (max-width: 1100px) { .header-authors { display: none; } }
+
+/* The video sits normally in its frame again. Absolute positioning was a
+   workaround from when the frame had no definite height; the frame now has one,
+   so the video can simply fill it. Fewer moving parts, and it removes the other
+   thing that changed when thermal playback stopped working. */
+.video-wrapper video {
+  position: static;
+  inset: auto;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
