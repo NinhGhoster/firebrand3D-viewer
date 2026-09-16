@@ -428,10 +428,9 @@ window.copyRunId = function () {
 // Video — every segment reachable, not just the first
 // ---------------------------------------------------------------------------
 function updateVideoPlayers(run) {
-  renderSegmentStrip('rgb', run.rgb_videos.map((p, i) => ({ path: p, label: segLabel(p, i) })));
-  renderSegmentStrip('thermal', (run.thermal_segments || []).map((s, i) => ({
-    path: s.path, label: s.label || segLabel(s.path, i), threshold_degC: s.threshold_degC,
-  })));
+  const strip = paths => paths.map((p, i) => ({ path: p, label: segLabel(p, i) }));
+  renderSegmentStrip('rgb', strip(run.rgb_videos));
+  renderSegmentStrip('thermal', strip(run.thermal_videos));
   loadSegment('rgb', 0);
   loadSegment('thermal', 0);
 }
@@ -460,9 +459,13 @@ function renderSegmentStrip(kind, segments) {
 function loadSegment(kind, index) {
   const run = selectedRun;
   if (!run) return;
-  const list = kind === 'rgb'
-    ? run.rgb_videos.map(p => ({ path: p }))
-    : (run.thermal_segments || []);
+  // Thermal and RGB are the same thing: an MP4 in a list of paths. Both are driven from
+  // the same array shape so there is no second code path to diverge. The sidecar values
+  // (frame size, encoded temperature range) are attached to the matching entry and used
+  // only to shape the frame and label the scale — never to decide what gets played.
+  const meta = run.thermal_segments || [];
+  const list = (kind === 'rgb' ? run.rgb_videos : run.thermal_videos)
+    .map(path => Object.assign({ path }, meta.find(m => m.path === path) || {}));
   const video = document.getElementById(`video-${kind}`);
   const empty = document.getElementById(`video-${kind}-empty`);
 
