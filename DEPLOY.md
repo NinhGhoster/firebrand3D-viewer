@@ -81,9 +81,32 @@ find /mnt/firebrand3d/level2/RGB_videos /mnt/firebrand3d/level2/thermal_videos \
 
 `retag_hvc1.py` locates the `moov` atom, finds the fourcc inside it and overwrites four
 bytes. It never reads or touches `mdat`, so the file size is unchanged and the pixels are
-bit-identical — verified with `framemd5` before and after. It took 25 seconds for the whole
-release. Re-muxing with `ffmpeg -c copy -tag:v hvc1` reaches the same result but moves 16 GB
-to change four bytes per file; only reach for it if you also want `+faststart`.
+bit-identical. Flip the four bytes back and the file's md5 matches `checksums.csv` again,
+which is how the patched files were verified. A pass over all 519 files takes 25 seconds.
+Re-muxing with `ffmpeg -c copy -tag:v hvc1` reaches the same result but moves 16 GB to change
+four bytes per file; only reach for it if you also want `+faststart`.
+
+**What the serving copy actually holds** (checked 2026-09-17). An ffmpeg re-mux was started
+before the in-place patch replaced it, so the copy is mixed:
+
+| files | retagged by | compared with the release |
+|---|---|---|
+| 279 — all 261 thermal, 18 RGB | four-byte patch | identical once the tag is flipped back |
+| 240 RGB | ffmpeg re-mux | same video data, index moved to the front, 1 byte larger |
+
+The extra byte is the encoder tag: gumnut's ffmpeg writes `Lavf60.16.100`, one character
+longer than the release's `Lavf62.3.100`. So these 240 files fail an md5 check against
+`checksums.csv` even with the tag flipped back. They play correctly, and restoring them would
+move 12.7 GB for no visible change, so they were left as they are.
+
+**Give ffmpeg `-nostdin` in any shell loop.** Without it, ffmpeg reads stdin as keyboard
+commands, so in a `while read` loop it swallows characters from the file list. Usually that
+just mangles the next path and the next call fails loudly. But `q` means quit: ffmpeg closes a
+valid, shortened file and exits 0, so every check passes. The `q` in `obliqua` did this to
+`RGB_videos/fibrous_bark/E_obliqua/Very_high/150kW/S22.mp4`, which was served 29 seconds short
+until it was restored from MediaFlux on 2026-09-17. The shortened file is internally
+consistent, so a structural check will not catch it; compare duration or frame count against
+the source.
 
 **This is applied to the serving copy on gumnut only.** MediaFlux, Bushfire and the Figshare
 deposit still carry `hev1`, so videos downloaded from the deposit will not play on Apple
