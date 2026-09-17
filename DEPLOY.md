@@ -113,9 +113,13 @@ deposit still carry `hev1`, so videos downloaded from the deposit will not play 
 devices. Fixing that changes `checksums.csv`, which covers all 519 videos, so it belongs with
 a deliberate version update rather than a quiet edit.
 
-Retagging does not help Firefox, which has no HEVC support on any platform, nor Android
-devices without an HEVC decoder. Universal playback would need H.264 copies, which is a
-re-encode and needs roughly 16 GB the volume does not have.
+Beyond Apple, playback depends on the device. Firefox plays HEVC from version 134 on Windows,
+136 on macOS and 137 on Linux and Android, but like Chrome it hands decoding to the operating
+system or graphics hardware. The thermal videos are the likelier to fail there: they use
+HEVC's range-extensions profile in monochrome, which hardware decoders support less widely
+than the ordinary profile the RGB videos use. Verified so far on Safari and Chrome on macOS
+and iOS; not yet on Windows or Android. If a device cannot play them, the only universal
+answer is H.264 copies, which is a re-encode and needs roughly 16 GB the volume does not have.
 
 ## Not yet done
 
